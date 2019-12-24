@@ -5,6 +5,7 @@ import (
 	"io/ioutil"
 	"os"
 	"path/filepath"
+	"strings"
 )
 
 type file_type int
@@ -179,5 +180,14 @@ func fileIsExist(f string) bool {
 
 //路径拼接
 func pathSeparator(path, f_name string) string {
+	if path == "" {
+		return f_name
+	}
+	if string(filepath.Separator) == "/" {
+		f_name = strings.Replace(f_name, "\\", "/", -1)
+	}
+	if string(filepath.Separator) == "\\" {
+		f_name = strings.Replace(f_name, "/", "\\", -1)
+	}
 	return (path + string(filepath.Separator) + f_name)
 }
