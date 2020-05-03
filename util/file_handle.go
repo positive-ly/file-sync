@@ -36,26 +36,35 @@ func Contrast(s, t string) {
 }
 
 //删量对比操作
-func delete_copmare(s, t string) {
+//参数: 源路径，目标路径
+func delete_copmare(s, t string, layNum ...int) {
+	l_n := 1
+	if len(layNum) > 0 {
+		l_n = layNum[0]
+	}
+	//获取被对比文件夹路径
 	t_list, err := ioutil.ReadDir(t)
 	if err != nil {
 		exit(err.Error())
 	}
-	for _, v := range t_list {
-		f_file := pathSeparator(s, v.Name())
-		if fileIsExist(f_file) {
-			s_file := fileStat(f_file)
-			if v.IsDir() == s_file.IsDir() {
-				if v.IsDir() && s_file.IsDir() {
-					delete_copmare(f_file, pathSeparator(t, v.Name()))
+	for _, v := range t_list { //目标路径文件遍历
+		f_file := pathSeparator(s, v.Name()) //源路径文件地址拼接
+		if fileIsExist(f_file) {             //如果源路径相同文件/文件夹存在
+			s_file := fileStat(f_file)       //获取源路径同名文件信息
+			if v.IsDir() == s_file.IsDir() { //判断文件夹是否相同类型
+				if v.IsDir() && s_file.IsDir() { //如果都是文件夹，
+					delete_copmare(f_file, pathSeparator(t, v.Name()), l_n+1) //递归搜索
 				}
-			} else {
+			} else { //类型不同报错提示
 				err_info_log(f_file, pathSeparator(t, v.Name()), s_file.IsDir(), v.IsDir())
 				continue
 			}
-		} else { //删除
+		} else { //删除目标路径文件
+			if Layer_num > l_n { //如果当前层级小于等于预设层级，则跳过删除操作
+				continue
+			}
 			if Log_print {
-				delete_info_log(f_file, v.IsDir())
+				delete_info_log(v.Name(), t, v.IsDir())
 			}
 			if Delete_file {
 				err := os.RemoveAll(pathSeparator(t, v.Name()))
@@ -68,7 +77,11 @@ func delete_copmare(s, t string) {
 }
 
 //增量对比操作
-func increment_compare(s, t string) {
+func increment_compare(s, t string, layNum ...int) {
+	l_n := 1
+	if len(layNum) > 0 {
+		l_n = layNum[0]
+	}
 	s_list, err := ioutil.ReadDir(s)
 	if err != nil {
 		exit(err.Error())
@@ -79,10 +92,18 @@ func increment_compare(s, t string) {
 			t_file := fileStat(f_file)
 			if v.IsDir() == t_file.IsDir() {
 				if v.IsDir() && t_file.IsDir() {
-					increment_compare(pathSeparator(s, v.Name()), f_file)
+					increment_compare(pathSeparator(s, v.Name()), f_file, l_n+1)
 				} else {
+					if Layer_num > l_n { //如果当前层级小于等于预设层级，则跳过
+						continue
+					}
 					if mod_time_and_size_compare(v, t_file) {
-						create_and_copy_file(pathSeparator(s, v.Name()), f_file, v, _UPDATE_FILE) //将源文件内容复制到目标文件
+						if Log_print {
+							copy_info_log(v.Name(), t)
+						}
+						if Copy_file {
+							create_and_copy_file(pathSeparator(s, v.Name()), f_file, v, _UPDATE_FILE) //将源文件内容复制到目标文件
+						}
 					}
 				}
 			} else {
@@ -90,19 +111,27 @@ func increment_compare(s, t string) {
 				continue
 			}
 		} else {
-			if Log_print {
-				create_info_log(f_file, v.IsDir())
+			if Layer_num > l_n { //如果当前层级小于等于预设层级，则跳过
+				continue
 			}
 			if v.IsDir() {
+				if Log_print {
+					create_info_log(v.Name(), t, v.IsDir())
+				}
 				if Create_file {
 					err := os.MkdirAll(f_file, os.ModePerm)
 					if err != nil {
 						exit(err.Error())
 					}
-					increment_compare(pathSeparator(s, v.Name()), f_file)
+					increment_compare(pathSeparator(s, v.Name()), f_file, l_n+1)
 				}
 			} else {
-				create_and_copy_file(pathSeparator(s, v.Name()), f_file, v, _CREATE_FILE)
+				if Log_print {
+					create_info_log(v.Name(), t, v.IsDir())
+				}
+				if Copy_file {
+					create_and_copy_file(pathSeparator(s, v.Name()), f_file, v, _CREATE_FILE) //将源文件内容复制到目标文件
+				}
 			}
 		}
 	}
@@ -120,9 +149,6 @@ func create_and_copy_file(s, t string, s_fi os.FileInfo, f_type file_type) {
 
 //源文件拷贝到目标文件相同位置
 func source_copy_tatget(s, t string, s_fi os.FileInfo) {
-	if Log_print {
-		copy_info_log(s, t)
-	}
 	t_f, err := os.Create(t)
 	if err != nil {
 		exit(err.Error())

@@ -94,7 +94,7 @@ func _net_delete_copmare(s, l string) {
 			}
 		} else { //删除
 			if Log_print {
-				delete_info_log(f_file, v.IsDir())
+				delete_info_log(v.Name(), l, v.IsDir())
 			}
 			if Delete_file {
 				err := os.RemoveAll(pathSeparator(l, v.Name()))
@@ -141,7 +141,7 @@ func _net_dir_comparison(s, l string) {
 			}
 		} else {
 			if Log_print && v.IsDir {
-				create_info_log(l_file, v.IsDir)
+				create_info_log(v.FileName, l, v.IsDir)
 			}
 			if v.IsDir {
 				if Create_file {
@@ -161,7 +161,7 @@ func _net_dir_comparison(s, l string) {
 func creOrUpdFile(s, l string, s_ds *_http_dir_struct, f_type file_type) {
 	if Log_print {
 		if f_type == _CREATE_FILE {
-			create_info_log(l, s_ds.IsDir)
+			create_info_log(s_ds.FileName, l, s_ds.IsDir)
 		}
 		if f_type == _UPDATE_FILE {
 			copy_info_log(s, l)

@@ -8,28 +8,28 @@ func end_info_log() {
 	fmt.Println("文件对比完成")
 }
 
-func create_info_log(str string, isDir bool) {
+func create_info_log(str, path string, isDir bool) {
 	s := ""
 	if isDir {
 		s = "文件夹"
 	} else {
 		s = "文件"
 	}
-	fmt.Println(fmt.Sprintf("[+]\t创建处理: %-3s \t[ %s ]", s, str))
+	fmt.Println(fmt.Sprintf("[ create ]  创建%-s:\t [ %s ] \t路径: [ %s ]", s, str, path))
 }
 
-func delete_info_log(str string, isDir bool) {
+func delete_info_log(str, path string, isDir bool) {
 	s := ""
 	if isDir {
 		s = "文件夹"
 	} else {
 		s = "文件"
 	}
-	fmt.Println(fmt.Sprintf("[-]\t删除处理: %-3s \t[ %s ]", s, str))
+	fmt.Println(fmt.Sprintf("[ delete ]  删除%-s:\t [ %s ] \t路径: [ %s ]", s, str, path))
 }
 
 func copy_info_log(s, t string) {
-	fmt.Println(fmt.Sprintf("[+]\t拷贝处理: [ %s ] 到 [ %s ]", s, t))
+	fmt.Println(fmt.Sprintf("[ copy ]  拷贝数据: [ %s ] \t路径: [ %s ]", s, t))
 }
 
 var errs []string
